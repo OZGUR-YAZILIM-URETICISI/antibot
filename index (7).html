@@ -1,0 +1,556 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>SancakCraft Anti Bot</title>
+<style>
+  @font-face {
+    font-family: 'Space Grotesk';
+    src: local('Space Grotesk');
+  }
+
+  :root {
+    --bg: #0b0d10;
+    --bg-2: #12151a;
+    --line: #23272e;
+    --ink: #eef0f2;
+    --dim: #8a919c;
+    --flag: #c0392b;
+    --flag-bright: #e74c3c;
+    --mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+    --sans: 'Space Grotesk', -apple-system, 'Segoe UI', sans-serif;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    background: var(--bg);
+    color: var(--ink);
+    font-family: var(--sans);
+    min-height: 100vh;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  /* subtle grid texture */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image:
+      linear-gradient(var(--line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--line) 1px, transparent 1px);
+    background-size: 64px 64px;
+    opacity: 0.35;
+    pointer-events: none;
+    mask-image: radial-gradient(ellipse 80% 60% at 50% 20%, black 20%, transparent 75%);
+  }
+
+  .wrap {
+    max-width: 720px;
+    margin: 0 auto;
+    padding: 0 28px;
+    position: relative;
+    z-index: 1;
+  }
+
+  /* ---------- HEADER STRIPE ---------- */
+  .stripe {
+    height: 4px;
+    background: repeating-linear-gradient(
+      90deg,
+      var(--flag) 0 28px,
+      transparent 28px 40px
+    );
+  }
+
+  nav {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 22px 0;
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--dim);
+    letter-spacing: 0.5px;
+  }
+
+  nav .mark {
+    color: var(--ink);
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  nav .mark .flagicon {
+    width: 10px;
+    height: 10px;
+    background: var(--flag-bright);
+    display: inline-block;
+    clip-path: polygon(0 0, 100% 0, 78% 50%, 100% 100%, 0 100%);
+  }
+
+  nav .status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  nav .status .dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #3fb950;
+    box-shadow: 0 0 6px #3fb950;
+  }
+
+  /* ---------- HERO ---------- */
+  .hero {
+    padding: 84px 0 60px;
+  }
+
+  .eyebrow {
+    font-family: var(--mono);
+    font-size: 12px;
+    letter-spacing: 2px;
+    color: var(--flag-bright);
+    text-transform: uppercase;
+    margin-bottom: 22px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .eyebrow::before {
+    content: '';
+    width: 20px;
+    height: 1px;
+    background: var(--flag-bright);
+  }
+
+  h1 {
+    font-size: clamp(42px, 8vw, 68px);
+    line-height: 0.98;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+
+  h1 .sub {
+    display: block;
+    font-size: 0.42em;
+    font-weight: 500;
+    color: var(--dim);
+    letter-spacing: 0;
+    margin-top: 14px;
+    font-family: var(--mono);
+  }
+
+  .lede {
+    margin-top: 26px;
+    max-width: 480px;
+    color: var(--dim);
+    font-size: 16px;
+    line-height: 1.65;
+  }
+
+  .lede strong { color: var(--ink); font-weight: 600; }
+
+  /* ---------- CTA ---------- */
+  .cta-row {
+    margin-top: 40px;
+    display: flex;
+    align-items: center;
+    gap: 18px;
+    flex-wrap: wrap;
+  }
+
+  .btn-download {
+    position: relative;
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    background: var(--flag);
+    color: #fff;
+    font-family: var(--mono);
+    font-weight: 600;
+    font-size: 14px;
+    padding: 16px 26px;
+    border-radius: 4px;
+    text-decoration: none;
+    letter-spacing: 0.3px;
+    transition: background 0.15s ease, transform 0.15s ease;
+    border: 1px solid var(--flag-bright);
+  }
+
+  .btn-download:hover {
+    background: var(--flag-bright);
+    transform: translateY(-1px);
+  }
+
+  .btn-download .arrow {
+    transition: transform 0.15s ease;
+  }
+  .btn-download:hover .arrow { transform: translateY(2px); }
+
+  .version-tag {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--dim);
+    border: 1px solid var(--line);
+    padding: 8px 12px;
+    border-radius: 4px;
+  }
+
+  /* ---------- LOADER SECIMI ---------- */
+  .loader-select {
+    margin-top: 40px;
+  }
+
+  .loader-tabs {
+    display: inline-flex;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    overflow: hidden;
+    background: var(--bg-2);
+  }
+
+  .loader-tab {
+    font-family: var(--mono);
+    font-size: 13px;
+    font-weight: 600;
+    padding: 10px 22px;
+    background: transparent;
+    border: none;
+    color: var(--dim);
+    cursor: pointer;
+    letter-spacing: 0.3px;
+    transition: background 0.15s ease, color 0.15s ease;
+  }
+
+  .loader-tab:not(:last-child) {
+    border-right: 1px solid var(--line);
+  }
+
+  .loader-tab:hover {
+    color: var(--ink);
+  }
+
+  .loader-tab.active {
+    background: var(--flag);
+    color: #fff;
+  }
+
+  /* ---------- CHECKPOINT DIAGRAM ---------- */
+  .checkpoint {
+    margin-top: 90px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--bg-2);
+    overflow: hidden;
+  }
+
+  .checkpoint .head {
+    padding: 16px 20px;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--dim);
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    display: flex;
+    justify-content: space-between;
+  }
+
+  .gates {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .gate {
+    display: flex;
+    align-items: flex-start;
+    gap: 16px;
+    padding: 20px;
+    border-bottom: 1px solid var(--line);
+  }
+  .gate:last-child { border-bottom: none; }
+
+  .gate .idx {
+    font-family: var(--mono);
+    font-size: 11px;
+    color: var(--flag-bright);
+    background: rgba(192,57,43,0.12);
+    border: 1px solid rgba(192,57,43,0.35);
+    border-radius: 50%;
+    width: 26px;
+    height: 26px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  .gate .title {
+    font-weight: 600;
+    font-size: 14.5px;
+    margin-bottom: 4px;
+  }
+
+  .gate .desc {
+    color: var(--dim);
+    font-size: 13.5px;
+    line-height: 1.55;
+  }
+
+  /* ---------- INSTALL STEPS ---------- */
+  .install {
+    margin-top: 56px;
+  }
+
+  .section-label {
+    font-family: var(--mono);
+    font-size: 11px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    color: var(--dim);
+    margin-bottom: 18px;
+  }
+
+  .steps {
+    display: grid;
+    gap: 2px;
+    background: var(--line);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    overflow: hidden;
+  }
+
+  .step {
+    background: var(--bg-2);
+    padding: 18px 20px;
+    display: flex;
+    gap: 16px;
+    align-items: baseline;
+  }
+
+  .step .num {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--flag-bright);
+    flex-shrink: 0;
+    width: 20px;
+  }
+
+  .step .txt {
+    font-size: 14px;
+    color: var(--ink);
+  }
+
+  .step .txt code {
+    font-family: var(--mono);
+    font-size: 12.5px;
+    background: rgba(255,255,255,0.06);
+    padding: 2px 6px;
+    border-radius: 3px;
+    color: #d8dee6;
+  }
+
+  /* ---------- FOOTER ---------- */
+  footer {
+    margin-top: 100px;
+    padding: 32px 0 48px;
+    border-top: 1px solid var(--line);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: 14px;
+  }
+
+  footer .credits {
+    font-family: var(--mono);
+    font-size: 12px;
+    color: var(--dim);
+    letter-spacing: 0.3px;
+  }
+
+  footer .credits .by {
+    color: #5c636d;
+    margin-right: 6px;
+  }
+
+  footer .credits .name {
+    color: var(--ink);
+  }
+
+  footer .credits .name:not(:last-child)::after {
+    content: ',';
+    color: var(--dim);
+    margin-right: 4px;
+  }
+
+  footer .flagmark {
+    width: 14px;
+    height: 14px;
+    background: var(--flag);
+    clip-path: polygon(0 0, 100% 0, 78% 50%, 100% 100%, 0 100%);
+    opacity: 0.8;
+  }
+
+  @media (max-width: 560px) {
+    .wrap { padding: 0 20px; }
+    .hero { padding: 56px 0 40px; }
+    footer { flex-direction: column; align-items: flex-start; }
+  }
+</style>
+</head>
+<body>
+
+<div class="stripe"></div>
+
+<div class="wrap">
+
+  <nav>
+    <div class="mark"><span class="flagicon"></span>SANCAKCRAFT</div>
+    <div class="status"><span class="dot"></span>SUNUCU AKTIF</div>
+  </nav>
+
+  <section class="hero">
+    <div class="eyebrow">Giris Kontrolu</div>
+    <h1>
+      Anti Bot
+      <span class="sub">SancakCraft // istemci dogrulama modulu</span>
+    </h1>
+    <p class="lede">
+      SancakCraft sunucusuna girmeden once <strong>gercek oyuncu dogrulamasi</strong>
+      yapan istemci modu. Kurulmadan sunucuya baglanti kabul edilmez.
+    </p>
+
+    <div class="loader-select">
+      <div class="loader-tabs">
+        <button class="loader-tab active" data-loader="fabric">Fabric</button>
+        <button class="loader-tab" data-loader="forge">Forge</button>
+      </div>
+    </div>
+
+    <div class="cta-row">
+      <a href="#" class="btn-download" id="downloadBtn">
+        Modu Indir <span class="arrow">↓</span>
+      </a>
+      <span class="version-tag" id="versionTag">v1.0.0 · Fabric</span>
+    </div>
+  </section>
+
+  <div class="checkpoint">
+    <div class="head">
+      <span>Dogrulama Akisi</span>
+      <span>4 asama</span>
+    </div>
+    <div class="gates">
+      <div class="gate">
+        <div class="idx">1</div>
+        <div>
+          <div class="title">Baglanti</div>
+          <div class="desc">Sunucu, modun kurulu olup olmadigini kontrol eder. Mod bulunamazsa baglanti reddedilir.</div>
+        </div>
+      </div>
+      <div class="gate">
+        <div class="idx">2</div>
+        <div>
+          <div class="title">Onay</div>
+          <div class="desc">Ilk baglantida hangi verinin gonderilecegi acikca gosterilir, onayin olmadan devam edilmez.</div>
+        </div>
+      </div>
+      <div class="gate">
+        <div class="idx">3</div>
+        <div>
+          <div class="title">Dogrulama Kodu</div>
+          <div class="desc">Ekranda beliren kodu sohbete yazarak insan oldugunu dogrularsin.</div>
+        </div>
+      </div>
+      <div class="gate">
+        <div class="idx">4</div>
+        <div>
+          <div class="title">Giris</div>
+          <div class="desc">Dogrulama basariliysa sunucuya normal sekilde girersin.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="install">
+    <div class="section-label">Kurulum</div>
+    <div class="steps" id="stepsFabric">
+      <div class="step">
+        <span class="num">01</span>
+        <span class="txt">Fabric Loader'in kurulu oldugundan emin ol.</span>
+      </div>
+      <div class="step">
+        <span class="num">02</span>
+        <span class="txt">Indirdigin <code>.jar</code> dosyasini <code>.minecraft/mods</code> klasorune tasi.</span>
+      </div>
+      <div class="step">
+        <span class="num">03</span>
+        <span class="txt">Minecraft'i baslat, SancakCraft sunucusuna baglan.</span>
+      </div>
+    </div>
+    <div class="steps" id="stepsForge" style="display:none;">
+      <div class="step">
+        <span class="num">01</span>
+        <span class="txt">Forge'un kurulu oldugundan emin ol.</span>
+      </div>
+      <div class="step">
+        <span class="num">02</span>
+        <span class="txt">Indirdigin <code>.jar</code> dosyasini <code>.minecraft/mods</code> klasorune tasi.</span>
+      </div>
+      <div class="step">
+        <span class="num">03</span>
+        <span class="txt">Minecraft'i baslat, SancakCraft sunucusuna baglan.</span>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <div class="credits">
+      <span class="by">by:</span><span class="name">Hexcode</span><span class="name">IHPADMIN</span><span class="name">Builder</span><span class="name">1982</span>
+    </div>
+    <div class="flagmark"></div>
+  </footer>
+
+</div>
+
+<script>
+  // NOT: asagidaki linkleri kendi GitHub repo'ndaki .jar dosyalarinin
+  // "Raw" veya Releases indirme linkleriyle degistir.
+  const DOWNLOAD_LINKS = {
+    fabric: "https://github.com/KULLANICI_ADIN/REPO_ADIN/releases/download/v1.0.0/antibot-client-1.0.0.jar",
+    forge: "https://github.com/KULLANICI_ADIN/REPO_ADIN/releases/download/v1.0.0/antibotforge-1.0.0.jar"
+  };
+
+  const downloadBtn = document.getElementById('downloadBtn');
+  const versionTag = document.getElementById('versionTag');
+  const tabs = document.querySelectorAll('.loader-tab');
+  const stepsFabric = document.getElementById('stepsFabric');
+  const stepsForge = document.getElementById('stepsForge');
+
+  function selectLoader(loader) {
+    tabs.forEach(t => t.classList.toggle('active', t.dataset.loader === loader));
+    downloadBtn.href = DOWNLOAD_LINKS[loader];
+    versionTag.textContent = 'v1.0.0 · ' + (loader === 'fabric' ? 'Fabric' : 'Forge');
+    stepsFabric.style.display = loader === 'fabric' ? 'grid' : 'none';
+    stepsForge.style.display = loader === 'forge' ? 'grid' : 'none';
+  }
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => selectLoader(tab.dataset.loader));
+  });
+
+  selectLoader('fabric');
+</script>
+
+</body>
+</html>
